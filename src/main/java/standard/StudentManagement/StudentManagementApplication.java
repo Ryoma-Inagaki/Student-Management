@@ -1,6 +1,8 @@
 package standard.StudentManagement;
 
 
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,11 +26,18 @@ public class StudentManagementApplication {
   }
 
 
-//  リストで取るにはどうする？
   @GetMapping("/student")
   public String getStudent(@RequestParam String name) {
     Student student = repository.searchByName(name);
     return student.getName() + " " + student.getAge() + "歳" + " ID " + student.getId();
+  }
+
+  @GetMapping("/allStudents")
+  public List<String> getAllStudents() {
+    List<Student> students = repository.findAll();
+    return students.stream().map(
+            student -> student.getName() + " " + student.getAge() + "歳" + " ID " + student.getId())
+        .collect(Collectors.toList());
   }
 
   @PostMapping("/student")
@@ -37,8 +46,8 @@ public class StudentManagementApplication {
   }
 
   @PatchMapping("/student")
-  public void updateStudentId(@RequestParam String name,@RequestParam String id) {
-    repository.updateStudentId(name, id);
+  public void updateStudentAge(String name, int age) {
+    repository.updateStudentAge(name, age);
   }
 
   @DeleteMapping("/student")
