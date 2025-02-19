@@ -2,7 +2,6 @@ package standard.StudentManagement;
 
 
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -27,17 +26,14 @@ public class StudentManagementApplication {
 
 
   @GetMapping("/student")
-  public String getStudent(@RequestParam String name) {
-    Student student = repository.searchByName(name);
-    return student.getName() + " " + student.getAge() + "歳" + " ID " + student.getId();
+  public Student getStudent(@RequestParam String name) {
+    return repository.searchByName(name);
   }
 
   @GetMapping("/allStudents")
-  public List<String> getAllStudents() {
+  public List<Student> getAllStudents() {
     List<Student> students = repository.findAll();
-    return students.stream().map(
-            student -> student.getName() + " " + student.getAge() + "歳" + " ID " + student.getId())
-        .collect(Collectors.toList());
+    return students;
   }
 
   @PostMapping("/student")
