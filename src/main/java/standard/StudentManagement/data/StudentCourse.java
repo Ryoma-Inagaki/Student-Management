@@ -1,4 +1,4 @@
-package standard.StudentManagement;
+package standard.StudentManagement.data;
 
 import java.time.LocalDateTime;
 import lombok.Getter;
