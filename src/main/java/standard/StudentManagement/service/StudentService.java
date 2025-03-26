@@ -1,6 +1,7 @@
 package standard.StudentManagement.service;
 
 import java.util.List;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import standard.StudentManagement.data.Student;
@@ -18,10 +19,16 @@ public class StudentService {
   }
 
   public List<Student> getStudentList() {
-    return repository.search();
+    return repository.searchStudent();
   }
 
   public List<StudentCourse> getStudentCourseList() {
     return repository.searchStudentCourses();
+  }
+
+  public void registerStudent(Student student) {
+    student.setId(UUID.randomUUID().toString());
+    student.setDeleted(false);
+    repository.registerStudent(student);
   }
 }
