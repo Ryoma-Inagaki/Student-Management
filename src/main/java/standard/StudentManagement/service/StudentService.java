@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
+import standard.StudentManagement.domain.StudentDetail;
 import standard.StudentManagement.repository.StudentRepository;
 
 @Service
@@ -26,9 +27,13 @@ public class StudentService {
     return repository.searchStudentCourses();
   }
 
-  public void registerStudent(Student student) {
+  private void assignStudentId(Student student) {
     student.setId(UUID.randomUUID().toString());
-    student.setDeleted(false);
+  }
+
+  public void registerStudent(StudentDetail studentDetail) {
+    Student student = studentDetail.getStudent();
+    assignStudentId(student);
     repository.registerStudent(student);
   }
 }

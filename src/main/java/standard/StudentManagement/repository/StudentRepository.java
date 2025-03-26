@@ -19,7 +19,7 @@ public interface StudentRepository {
 
   @Insert("""
       INSERT INTO students (id, name, kana_name, nickname, email, area, age, sex, remark, is_deleted)
-      VALUES (#{id}, #{name}, #{kanaName}, #{nickname}, #{email}, #{area}, #{age}, #{sex}, #{remark}, #{isDeleted})
+      VALUES (#{id}, #{name}, #{kanaName}, #{nickname}, #{email}, #{area}, #{age}, #{sex}, #{remark}, false)
       """)
   void registerStudent(Student student);
 
