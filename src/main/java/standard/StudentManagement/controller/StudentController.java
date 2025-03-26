@@ -51,8 +51,8 @@ public class StudentController {
     if (result.hasErrors()) {
       return "registerStudent";
     }
-    Student student = studentDetail.getStudent();
-    service.registerStudent(student);
+    Student newStudent = studentDetail.getStudent();
+    service.registerStudent(newStudent);
 
     return "redirect:/studentList";
   }
