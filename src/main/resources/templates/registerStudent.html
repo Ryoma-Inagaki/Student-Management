@@ -39,6 +39,13 @@
     <textarea id="remark" th:field="*{student.remark}"></textarea>
   </div>
 
+  <h2>受講コース情報</h2>
+  <div th:each="course, stat : *{studentCourses}">
+    <label for="courseName" th:for="studentCourses.__${stat.index}__.courseName">コース名:</label>
+    <input type="text" id="courseName" th:id="studentCourses__${stat.index}__.courseName"
+           th:field="*{studentCourses[__${stat.index}__].courseName}"/>
+  </div>
+
   <button type="submit">登録</button>
 </form>
 </body>
