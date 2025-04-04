@@ -42,7 +42,9 @@ public class StudentController {
 
   @GetMapping("/newStudent")
   public String newStudent(Model model) {
-    model.addAttribute("studentDetail",  new StudentDetail());
+    StudentDetail studentDetail = new StudentDetail();
+    studentDetail.setStudentCourses(List.of(new StudentCourse()));
+    model.addAttribute("studentDetail", studentDetail);
     return "registerStudent";
   }
 
