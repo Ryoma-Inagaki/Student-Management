@@ -8,6 +8,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import standard.StudentManagement.controller.converter.StudentConverter;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
@@ -54,7 +55,24 @@ public class StudentController {
       return "registerStudent";
     }
     service.registerStudent(studentDetail);
+    return "redirect:/studentList";
+  }
 
+  @GetMapping("/updateStudent")
+  public String updateStudent(@RequestParam("id") String id, Model model) {
+    StudentDetail studentDetail = new StudentDetail();
+    studentDetail.setStudent(service.getStudentById(id));
+    studentDetail.setStudentCourses(service.getStudentCoursesByStudentId(id));
+    model.addAttribute("studentDetail", studentDetail);
+    return "updateStudent";
+  }
+
+  @PostMapping("/updateStudent")
+  public String updateStudent(@ModelAttribute StudentDetail studentDetail, BindingResult result) {
+    if (result.hasErrors()) {
+      return "updateStudent";
+    }
+    service.updateStudent(studentDetail);
     return "redirect:/studentList";
   }
 }

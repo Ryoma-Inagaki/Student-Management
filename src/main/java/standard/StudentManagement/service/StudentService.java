@@ -25,8 +25,16 @@ public class StudentService {
     return repository.searchStudent();
   }
 
+  public Student getStudentById(String id) {
+    return repository.searchStudentId(id);
+  }
+
   public List<StudentCourse> getStudentCourseList() {
     return repository.searchStudentCourses();
+  }
+
+  public List<StudentCourse> getStudentCoursesByStudentId(String id){
+    return repository.searchStudentCoursesByStudentId(id);
   }
 
   private void assignStudentId(Student student) {
@@ -43,6 +51,16 @@ public class StudentService {
       studentCourse.setStartAt(LocalDateTime.now());
       studentCourse.setEndAt(LocalDateTime.now().plusMonths(6));
       repository.registerStudentCourses(studentCourse);
+    }
+  }
+
+  @Transactional
+  public void updateStudent(StudentDetail studentDetail) {
+    Student student = studentDetail.getStudent();
+    repository.updateStudent(student);
+    for (StudentCourse studentCourse : studentDetail.getStudentCourses()) {
+      studentCourse.setStudentId(studentDetail.getStudent().getId());
+      repository.updateStudentCourses(studentCourse);
     }
   }
 }
