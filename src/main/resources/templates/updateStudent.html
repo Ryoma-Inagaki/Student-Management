@@ -5,8 +5,9 @@
 </head>
 <body>
 <h1>受講生更新</h1>
-<form action="/updateStudent" method="post" th:object="${studentDetail}">
-  <input type="hidden" th:field="*{student.id}" />
+<form th:action="@{/updateStudent}"
+      method="post" th:object="${studentDetail}">
+  <input type="hidden" th:field="*{student.id}"/>
   <div>
     <label for="name">名前:</label>
     <input type="text" id="name" th:field="*{student.name}" required>
@@ -42,8 +43,9 @@
 
   <h2>受講コース情報</h2>
   <div th:each="course, stat : *{studentCourses}">
-    <label for="courseName" th:for="studentCourses__${stat.index}__.courseName">コース名:</label>
-    <input type="text" id="courseName" th:id="studentCourses__${stat.index}__.courseName"
+    <input type="hidden" th:field="*{studentCourses[__${stat.index}__].id}"/>
+    <label th:for="studentCourses__${stat.index}__.courseName">コース名:</label>
+    <input type="text" th:id="studentCourses__${stat.index}__.courseName"
            th:field="*{studentCourses[__${stat.index}__].courseName}"/>
   </div>
 

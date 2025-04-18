@@ -25,17 +25,19 @@ public class StudentService {
     return repository.searchStudent();
   }
 
-  public Student getStudentById(String id) {
-    return repository.searchStudentId(id);
+  public StudentDetail getStudentProfile(String id) {
+    Student student = repository.searchStudentById(id);
+    List<StudentCourse> studentCourses = repository.searchStudentCoursesByStudentId(student.getId());
+    StudentDetail studentDetail = new StudentDetail();
+    studentDetail.setStudent(student);
+    studentDetail.setStudentCourses(studentCourses);
+    return studentDetail;
   }
 
   public List<StudentCourse> getStudentCourseList() {
     return repository.searchStudentCourses();
   }
 
-  public List<StudentCourse> getStudentCoursesByStudentId(String id){
-    return repository.searchStudentCoursesByStudentId(id);
-  }
 
   private void assignStudentId(Student student) {
     student.setId(UUID.randomUUID().toString());
@@ -56,10 +58,8 @@ public class StudentService {
 
   @Transactional
   public void updateStudent(StudentDetail studentDetail) {
-    Student student = studentDetail.getStudent();
-    repository.updateStudent(student);
+    repository.updateStudent(studentDetail.getStudent());
     for (StudentCourse studentCourse : studentDetail.getStudentCourses()) {
-      studentCourse.setStudentId(studentDetail.getStudent().getId());
       repository.updateStudentCourses(studentCourse);
     }
   }

@@ -17,7 +17,7 @@ public interface StudentRepository {
   List<Student> searchStudent();
 
   @Select("SELECT * FROM students WHERE id = #{id}")
-  Student searchStudentId(String id);
+  Student searchStudentById(String id);
 
   @Select("SELECT * FROM students_courses")
   List<StudentCourse> searchStudentCourses();
@@ -48,7 +48,7 @@ public interface StudentRepository {
 
   @Update("""
        UPDATE students_courses SET course_name = #{courseName}
-      WHERE student_id = #{studentId}
+      WHERE id = #{id}
       """)
   void updateStudentCourses(StudentCourse studentCourse);
 
