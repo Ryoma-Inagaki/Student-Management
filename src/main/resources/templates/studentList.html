@@ -20,7 +20,8 @@
   </tr>
   </thead>
   <tbody>
-  <tr th:each="studentDetail : ${studentList}">
+  <tr th:each="studentDetail : ${studentList}"
+      th:if="${!studentDetail.student.deleted}">
     <td th:text="${studentDetail.student.id}">1</td>
     <td>
       <a th:href="@{/updateStudent/{id}(id=${studentDetail.student.id})}"

@@ -40,6 +40,11 @@
     <label for="remark">備考:</label>
     <textarea id="remark" th:field="*{student.remark}"></textarea>
   </div>
+  <div>
+    <input type="checkbox" th:field="*{student.deleted}" value="true" id="deleted"/>
+    <input type="hidden" th:field="*{student.deleted}" value="false"/>
+    <label for="deleted">キャンセル</label>
+  </div>
 
   <h2>受講コース情報</h2>
   <div th:each="course, stat : *{studentCourses}">
