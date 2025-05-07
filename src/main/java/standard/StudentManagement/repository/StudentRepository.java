@@ -13,11 +13,11 @@ import standard.StudentManagement.data.StudentCourse;
 @Mapper
 public interface StudentRepository {
 
-  @Select("SELECT * FROM students")
+  @Select("SELECT * FROM students WHERE is_deleted = false")
   List<Student> searchStudent();
 
   @Select("SELECT * FROM students WHERE id = #{id}")
-  Student searchStudentId(String id);
+  Student searchStudentById(String id);
 
   @Select("SELECT * FROM students_courses")
   List<StudentCourse> searchStudentCourses();
@@ -41,14 +41,14 @@ public interface StudentRepository {
 
   @Update("""
       UPDATE students SET name = #{name}, kana_name = #{kanaName}, nickname = #{nickname},
-      email = #{email}, area = #{area}, age = #{age}, sex = #{sex}, remark = #{remark}, is_deleted = #{isDeleted}
+      email = #{email}, area = #{area}, age = #{age}, sex = #{sex}, remark = #{remark}, is_deleted = #{deleted}
       WHERE id = #{id}
       """)
   void updateStudent(Student student);
 
   @Update("""
        UPDATE students_courses SET course_name = #{courseName}
-      WHERE student_id = #{studentId}
+      WHERE id = #{id}
       """)
   void updateStudentCourses(StudentCourse studentCourse);
 
