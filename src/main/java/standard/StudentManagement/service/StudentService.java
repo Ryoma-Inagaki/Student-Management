@@ -34,7 +34,7 @@ public class StudentService {
    */
   public List<StudentDetail> getStudentList() {
     List<Student> studentList = repository.searchStudent();
-    List<StudentCourse> studentCourseList = repository.searchStudentCourses();
+    List<StudentCourse> studentCourseList = repository.searchStudentCourseList();
     return converter.convertStudentDetails(studentList, studentCourseList);
   }
 
@@ -46,7 +46,7 @@ public class StudentService {
    */
   public StudentDetail getStudentProfile(String id) {
     Student student = repository.searchStudentById(id);
-    List<StudentCourse> studentCourses = repository.searchStudentCoursesByStudentId(
+    List<StudentCourse> studentCourses = repository.searchStudentCourseListByStudentId(
         student.getId());
     return new StudentDetail(student, studentCourses);
   }
@@ -78,11 +78,11 @@ public class StudentService {
     String studentId = studentDetail.getStudent().getId();
     LocalDateTime now = LocalDateTime.now();
 
-    for (StudentCourse studentCourse : studentDetail.getStudentCourses()) {
+    for (StudentCourse studentCourse : studentDetail.getStudentCourseList()) {
       studentCourse.setStudentId(studentId);
       studentCourse.setStartAt(now);
-      studentCourse.setEndAt(LocalDateTime.now().plusMonths(6));
-      repository.registerStudentCourses(studentCourse);
+      studentCourse.setEndAt(now.plusMonths(6));
+      repository.registerStudentCourseList(studentCourse);
     }
   }
 
@@ -103,8 +103,8 @@ public class StudentService {
   @Transactional
   public void updateStudent(StudentDetail studentDetail) {
     repository.updateStudent(studentDetail.getStudent());
-    for (StudentCourse studentCourse : studentDetail.getStudentCourses()) {
-      repository.updateStudentCourses(studentCourse);
+    for (StudentCourse studentCourse : studentDetail.getStudentCourseList()) {
+      repository.updateStudentCourseList(studentCourse);
     }
   }
 }
