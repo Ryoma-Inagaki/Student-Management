@@ -1,5 +1,6 @@
 package standard.StudentManagement.controller;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import standard.StudentManagement.domain.StudentDetail;
+import standard.StudentManagement.exception.TestException;
 import standard.StudentManagement.service.StudentService;
 
 /**
@@ -56,7 +58,7 @@ public class StudentController {
    */
   @PostMapping("/registerStudent")
   public ResponseEntity<StudentDetail> registerStudent(
-      @RequestBody @Validated StudentDetail studentDetail) {
+      @RequestBody @Valid StudentDetail studentDetail) {
     StudentDetail responseStudentDetail = service.registerStudent(studentDetail);
     return ResponseEntity.ok(responseStudentDetail);
   }
@@ -68,8 +70,15 @@ public class StudentController {
    * @return 更新処理の結果メッセージ
    */
   @PutMapping("/updateStudent")
-  public ResponseEntity<String> updateStudent(@RequestBody StudentDetail studentDetail) {
+  public ResponseEntity<String> updateStudent(@RequestBody @Valid StudentDetail studentDetail) {
     service.updateStudent(studentDetail);
     return ResponseEntity.ok("更新処理が成功しました。");
   }
+
+  @GetMapping("/students")
+  public List<StudentDetail> getTestException() throws TestException{
+    throw new TestException("現在このAPIは利用できません。URLは｢studentList｣を利用してください。");
+  }
+
+
 }
