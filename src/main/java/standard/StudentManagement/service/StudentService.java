@@ -1,5 +1,6 @@
 package standard.StudentManagement.service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -20,11 +21,17 @@ public class StudentService {
 
   private StudentRepository repository;
   private StudentConverter converter;
+  private Clock clock;
 
   @Autowired
   public StudentService(StudentRepository repository, StudentConverter converter) {
+    this(repository,converter,Clock.systemDefaultZone());
+  }
+
+  StudentService(StudentRepository repository, StudentConverter converter, Clock clock){
     this.repository = repository;
     this.converter = converter;
+    this.clock = clock;
   }
 
   /**
@@ -74,9 +81,9 @@ public class StudentService {
    *
    * @param studentDetail 受講生詳細情報
    */
-  private void registerCourseWithStudentId(StudentDetail studentDetail) {
+  void registerCourseWithStudentId(StudentDetail studentDetail) {
     String studentId = studentDetail.getStudent().getId();
-    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime now = LocalDateTime.now(clock);
 
     for (StudentCourse studentCourse : studentDetail.getStudentCourseList()) {
       studentCourse.setStudentId(studentId);
