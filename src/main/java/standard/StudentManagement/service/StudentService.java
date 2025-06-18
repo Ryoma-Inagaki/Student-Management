@@ -28,6 +28,14 @@ public class StudentService {
     this(repository,converter,Clock.systemDefaultZone());
   }
 
+  /**
+   * テスト用途で使用するコンストラクタです。
+   * Clock を任意に注入可能にすることで、日時に依存するロジックの検証を容易にします。
+   *
+   * @param repository 受講生リポジトリ
+   * @param converter 受講生コンバータ
+   * @param clock テスト用の Clock インスタンス
+   */
   StudentService(StudentRepository repository, StudentConverter converter, Clock clock){
     this.repository = repository;
     this.converter = converter;
