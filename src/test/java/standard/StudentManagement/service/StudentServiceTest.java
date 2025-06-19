@@ -52,9 +52,9 @@ class StudentServiceTest {
 
     StudentCourse course1 = new StudentCourse();
     StudentCourse course2 = new StudentCourse();
-    testCourseList = List.of(course1,course2);
+    testCourseList = List.of(course1, course2);
 
-    testStudentDetail = new StudentDetail(testStudent,testCourseList);
+    testStudentDetail = new StudentDetail(testStudent, testCourseList);
   }
 
   @Test
@@ -121,6 +121,14 @@ class StudentServiceTest {
       assertEquals(fixedDateTime, studentCourse.getStartAt());
       assertEquals(fixedDateTime.plusMonths(6), studentCourse.getEndAt());
     }
-    verify(repository,times(2)).registerStudentCourseList(any(StudentCourse.class));
+    verify(repository, times(2)).registerStudentCourseList(any(StudentCourse.class));
+  }
+
+  @Test
+  void updateStudent_リポジトリの処理が適切によびだせていること() {
+    sut.updateStudent(testStudentDetail);
+
+    verify(repository).updateStudent(testStudent);
+    verify(repository, times(2)).updateStudentCourseList(any(StudentCourse.class));
   }
 }
