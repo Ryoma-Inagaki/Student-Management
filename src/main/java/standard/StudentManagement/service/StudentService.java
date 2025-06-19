@@ -1,5 +1,6 @@
 package standard.StudentManagement.service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -20,11 +21,25 @@ public class StudentService {
 
   private StudentRepository repository;
   private StudentConverter converter;
+  private Clock clock;
 
   @Autowired
   public StudentService(StudentRepository repository, StudentConverter converter) {
+    this(repository,converter,Clock.systemDefaultZone());
+  }
+
+  /**
+   * テスト用途で使用するコンストラクタです。
+   * Clock を任意に注入可能にすることで、日時に依存するロジックの検証を容易にします。
+   *
+   * @param repository 受講生リポジトリ
+   * @param converter 受講生コンバータ
+   * @param clock テスト用の Clock インスタンス
+   */
+  StudentService(StudentRepository repository, StudentConverter converter, Clock clock){
     this.repository = repository;
     this.converter = converter;
+    this.clock = clock;
   }
 
   /**
@@ -74,9 +89,9 @@ public class StudentService {
    *
    * @param studentDetail 受講生詳細情報
    */
-  private void registerCourseWithStudentId(StudentDetail studentDetail) {
+  void registerCourseWithStudentId(StudentDetail studentDetail) {
     String studentId = studentDetail.getStudent().getId();
-    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime now = LocalDateTime.now(clock);
 
     for (StudentCourse studentCourse : studentDetail.getStudentCourseList()) {
       studentCourse.setStudentId(studentId);
