@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -113,12 +114,17 @@ class StudentControllerTest {
 
     StudentCourse course1 = new StudentCourse();
     course1.setId("course1");
+    course1.setStudentId(testStudent.getId());
     course1.setCourseName("Java入門");
+    course1.setStartAt(LocalDateTime.of(2025, 6, 1, 9, 0));
+    course1.setEndAt(LocalDateTime.of(2025, 6, 30, 18, 0));
 
     StudentCourse course2 = new StudentCourse();
     course2.setId("course2");
+    course2.setStudentId(testStudent.getId());
     course2.setCourseName("Spring基礎");
-
+    course2.setStartAt(LocalDateTime.of(2025, 7, 1, 9, 0));
+    course2.setEndAt(LocalDateTime.of(2025, 7, 31, 18, 0));
     return new StudentDetail(testStudent, List.of(course1, course2));
   }
 
