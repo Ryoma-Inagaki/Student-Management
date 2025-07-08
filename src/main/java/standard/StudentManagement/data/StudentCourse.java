@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 public class StudentCourse {
 
-  private String id;
+  private int id;
 
   @NotBlank(message = "受講生IDは必須です。")
   private String studentId;

@@ -45,7 +45,7 @@ class StudentCourseValidationTest {
 
   private StudentCourse createValidCourse() {
     StudentCourse course = new StudentCourse();
-    course.setId("course1");
+    course.setId(1);
     course.setStudentId("test123");
     course.setCourseName("Spring基礎");
     course.setStartAt(LocalDateTime.of(2025, 6, 1, 9, 0));

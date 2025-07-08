@@ -113,14 +113,14 @@ class StudentControllerTest {
     testStudent.setSex("男性");
 
     StudentCourse course1 = new StudentCourse();
-    course1.setId("course1");
+    course1.setId(1);
     course1.setStudentId(testStudent.getId());
     course1.setCourseName("Java入門");
     course1.setStartAt(LocalDateTime.of(2025, 6, 1, 9, 0));
     course1.setEndAt(LocalDateTime.of(2025, 6, 30, 18, 0));
 
     StudentCourse course2 = new StudentCourse();
-    course2.setId("course2");
+    course2.setId(2);
     course2.setStudentId(testStudent.getId());
     course2.setCourseName("Spring基礎");
     course2.setStartAt(LocalDateTime.of(2025, 7, 1, 9, 0));
