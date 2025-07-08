@@ -11,7 +11,8 @@
 
   <!-- 受講生の検索 -->
   <select id="searchStudentById" resultType="standard.StudentManagement.data.Student">
-    SELECT * FROM students WHERE id = #{id}
+    SELECT id, name, kana_name, nickname, email, area, age, sex, remark, is_deleted AS deleted FROM
+    students WHERE id = #{id}
   </select>
 
   <!-- 受講生コース情報の全件検索 -->
