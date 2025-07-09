@@ -1,6 +1,7 @@
 package standard.StudentManagement.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -24,11 +25,29 @@ class StudentRepositoryTest {
   }
 
   @Test
+  void searchStudent_isDeletedがtrueの受講生は含まれないこと() {
+    Student student = sut.searchStudentById("11111111-1111-1111-1111-111111111111");
+    student.setDeleted(true);
+    sut.updateStudent(student);
+
+    List<Student> students = sut.searchStudent();
+
+    boolean contains = students.stream().anyMatch(s -> s.getId().equals(student.getId()));
+    assertThat(contains).isFalse();
+  }
+
+  @Test
   void searchStudentById_IDから受講生情報が取得できること() {
     Student actual = sut.searchStudentById("11111111-1111-1111-1111-111111111111");
     assertThat(actual).isNotNull();
     assertThat(actual.getName()).isEqualTo("山田太郎");
     assertThat(actual.getEmail()).isEqualTo("yamada@example.com");
+  }
+
+  @Test
+  void searchStudentById_存在しないIDはnullを返すこと() {
+    Student student = sut.searchStudentById("99999999-9999-9999-9999-999999999999");
+    assertThat(student).isNull();
   }
 
   @Test
@@ -67,6 +86,29 @@ class StudentRepositoryTest {
   }
 
   @Test
+  void registerStudent_必須項目がnullの場合に例外がスローされること() {
+    Student student = new Student();
+    student.setId(UUID.randomUUID().toString());
+    student.setEmail("test@example.com");
+
+    assertThatThrownBy(() -> sut.registerStudent(student))
+        .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+  }
+
+  @Test
+  void registerStudent_メールが重複している場合に例外がスローされること() {
+    Student student = new Student();
+    student.setId(UUID.randomUUID().toString());
+    student.setName("山本テスト");
+    student.setKanaName("山本テスト");
+    student.setEmail("yamada@example.com");
+    student.setDeleted(false);
+
+    assertThatThrownBy(() -> sut.registerStudent(student))
+        .isInstanceOf(org.springframework.dao.DuplicateKeyException.class);
+  }
+
+  @Test
   void registerStudentCourseList_受講生コース情報の登録が行えること() {
     StudentCourse course = new StudentCourse();
     course.setStudentId("11111111-1111-1111-1111-111111111111");
@@ -95,6 +137,21 @@ class StudentRepositoryTest {
   }
 
   @Test
+  void updateStudent_存在しないIDを更新しても影響がないこと() {
+    Student student = new Student();
+    student.setId("non-existent-id");
+    student.setName("ダミー");
+    student.setKanaName("ダミー");
+    student.setEmail("dummy@example.com");
+    student.setDeleted(false);
+
+    sut.updateStudent(student);
+
+    Student result = sut.searchStudentById("non-existent-id");
+    assertThat(result).isNull();
+  }
+
+  @Test
   void updateStudentCourseList_受講生コース名が更新されること() {
     List<StudentCourse> courseList = sut.searchStudentCourseListByStudentId(
         "11111111-1111-1111-1111-111111111111");
@@ -113,5 +170,35 @@ class StudentRepositoryTest {
         .orElseThrow();
 
     assertThat(updated.getCourseName()).isEqualTo("テスト入門");
+  }
+
+  @Test
+  void registerStudentCourseList_存在しない受講生IDを指定した場合に例外が出ること() {
+    StudentCourse course = new StudentCourse();
+    course.setStudentId("non-existent-id");
+    course.setCourseName("架空のコース");
+    course.setStartAt(Timestamp.valueOf("2025-07-01 09:00:00").toLocalDateTime());
+    course.setEndAt(Timestamp.valueOf("2025-07-31 18:00:00").toLocalDateTime());
+
+    assertThatThrownBy(() -> sut.registerStudentCourseList(course))
+        .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+  }
+
+  @Test
+  void updateStudentCourseList_存在しないIDを指定しても影響がないこと() {
+    StudentCourse course = new StudentCourse();
+    course.setId(9999);
+    course.setStudentId("11111111-1111-1111-1111-111111111111");
+    course.setCourseName("存在しないIDで更新");
+    course.setStartAt(Timestamp.valueOf("2025-07-01 09:00:00").toLocalDateTime());
+    course.setEndAt(Timestamp.valueOf("2025-07-31 18:00:00").toLocalDateTime());
+
+    sut.updateStudentCourseList(course);
+
+    List<StudentCourse> courseList = sut.searchStudentCourseListByStudentId(
+        "11111111-1111-1111-1111-111111111111");
+    boolean updated = courseList.stream()
+        .anyMatch(c -> c.getCourseName().equals("存在しないIDで更新"));
+    assertThat(updated).isFalse();
   }
 }
