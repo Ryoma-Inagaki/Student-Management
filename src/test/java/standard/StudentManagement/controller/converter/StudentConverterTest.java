@@ -24,17 +24,17 @@ class StudentConverterTest {
     student2.setName("佐藤花子");
 
     StudentCourse course1 = new StudentCourse();
-    course1.setId("course1");
+    course1.setId(1);
     course1.setStudentId("name1");
     course1.setCourseName("AWSコース");
 
     StudentCourse course2 = new StudentCourse();
-    course2.setId("course2");
+    course2.setId(2);
     course2.setStudentId("name2");
     course2.setCourseName("Javaベーシック");
 
     StudentCourse course3 = new StudentCourse();
-    course3.setId("course3");
+    course3.setId(3);
     course3.setStudentId("name2");
     course3.setCourseName("Javaスタンダード");
 
