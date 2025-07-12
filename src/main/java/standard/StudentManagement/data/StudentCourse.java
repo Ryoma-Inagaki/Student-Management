@@ -1,6 +1,7 @@
 package standard.StudentManagement.data;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -26,6 +27,8 @@ public class StudentCourse {
   @NotNull(message = "終了日は必須です。")
   private LocalDateTime endAt;
 
+  @Valid
+  @NotNull(message = "申込状況は必須です")
   private ApplicationStatus applicationStatus;
 
 }

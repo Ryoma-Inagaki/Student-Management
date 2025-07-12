@@ -114,7 +114,7 @@ class StudentServiceTest {
 
     sut = new StudentService(repository, converter, fixedClock);
 
-    sut.registerCourseWithStudentId(testStudentDetail);
+    sut.registerCourseAndStatusWithStudentId(testStudentDetail);
 
     for (StudentCourse studentCourse : testCourseList) {
       assertEquals("test123", studentCourse.getStudentId());
