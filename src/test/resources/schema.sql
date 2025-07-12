@@ -19,3 +19,10 @@ CREATE TABLE students_courses (
   end_at TIMESTAMP,
   FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
 );
+
+CREATE TABLE application_statuses (
+  id VARCHAR(36) PRIMARY KEY,
+  student_course_id INT NOT NULL,
+  status VARCHAR(20) NOT NULL,
+  FOREIGN KEY (student_course_id) REFERENCES students_courses(id) ON DELETE CASCADE
+);

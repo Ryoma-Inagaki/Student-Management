@@ -3,6 +3,7 @@ package standard.StudentManagement.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import standard.StudentManagement.controller.converter.StudentConverter;
+import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
 import standard.StudentManagement.domain.StudentDetail;
@@ -51,7 +53,15 @@ class StudentServiceTest {
     testStudent.setNickname("テストマン");
 
     StudentCourse course1 = new StudentCourse();
+    ApplicationStatus status1 = new ApplicationStatus();
+    status1.setStatus("仮申込");
+    course1.setApplicationStatus(status1);
+
     StudentCourse course2 = new StudentCourse();
+    ApplicationStatus status2 = new ApplicationStatus();
+    status2.setStatus("受講中");
+    course2.setApplicationStatus(status2);
+
     testCourseList = List.of(course1, course2);
 
     testStudentDetail = new StudentDetail(testStudent, testCourseList);
@@ -79,22 +89,29 @@ class StudentServiceTest {
     mockStudent.setId(studentId);
     mockStudent.setName("山田テスト");
 
-    List<StudentCourse> mockCourses = new ArrayList<>();
     StudentCourse course = new StudentCourse();
+    course.setId(1);
     course.setStudentId(studentId);
-    mockCourses.add(course);
+
+    ApplicationStatus status = new ApplicationStatus();
+    status.setStatus("仮申込");
+
+    List<StudentCourse> mockCourses = List.of(course);
+
 
     when(repository.searchStudentById(studentId)).thenReturn(mockStudent);
     when(repository.searchStudentCourseListByStudentId(studentId)).thenReturn(mockCourses);
+    when(repository.searchApplicationStatusByStudentCourseId(1)).thenReturn(status);
 
     StudentDetail result = sut.getStudentProfile(studentId);
 
     verify(repository, times(1)).searchStudentById(studentId);
     verify(repository, times(1)).searchStudentCourseListByStudentId(studentId);
+    verify(repository, times(1)).searchApplicationStatusByStudentCourseId(1);
 
     assertEquals(studentId, result.getStudent().getId());
     assertEquals("山田テスト", result.getStudent().getName());
-
+    assertEquals("仮申込",result.getStudentCourseList().get(0).getApplicationStatus().getStatus());
   }
 
   @Test
@@ -107,12 +124,18 @@ class StudentServiceTest {
   }
 
   @Test
-  void registerCourseWithStudentId_コース情報に学生IDと日付が正しく設定されること() {
+  void registerCourseAndStatusWithStudentId_コース情報に学生IDと日付が正しく設定され申込状況も登録されること() {
     LocalDateTime fixedDateTime = LocalDateTime.of(2025, 6, 12, 0, 0);
     Clock fixedClock = Clock.fixed(fixedDateTime.atZone(ZoneId.systemDefault()).toInstant(),
         ZoneId.systemDefault());
 
     sut = new StudentService(repository, converter, fixedClock);
+
+    for(StudentCourse studentCourse : testCourseList){
+      ApplicationStatus status = new ApplicationStatus();
+      status.setStatus("仮申込");
+      studentCourse.setApplicationStatus(status);
+    }
 
     sut.registerCourseAndStatusWithStudentId(testStudentDetail);
 
@@ -122,13 +145,54 @@ class StudentServiceTest {
       assertEquals(fixedDateTime.plusMonths(6), studentCourse.getEndAt());
     }
     verify(repository, times(2)).registerStudentCourseList(any(StudentCourse.class));
+    verify(repository,times(2)).registerApplicationStatus(any(ApplicationStatus.class));
+  }
+
+  @Test
+  void registerApplicationStatusForCourse_申込状況がある場合登録されること() {
+    StudentCourse course = new StudentCourse();
+    ApplicationStatus status = new ApplicationStatus();
+    course.setApplicationStatus(status);
+
+    sut.registerApplicationStatusForCourse(course);
+
+    verify(repository, times(1)).registerApplicationStatus(status);
+  }
+
+  @Test
+  void registerApplicationStatusForCourse_申込状況がnullの場合登録されないこと() {
+    StudentCourse course = new StudentCourse();
+
+    sut.registerApplicationStatusForCourse(course);
+
+    verify(repository, never()).registerApplicationStatus(any());
   }
 
   @Test
   void updateStudent_リポジトリの処理が適切によびだせていること() {
+    for (StudentCourse course : testCourseList){
+      ApplicationStatus status = new ApplicationStatus();
+      status.setStatus("仮申込");
+      course.setApplicationStatus(status);
+    }
+
     sut.updateStudent(testStudentDetail);
 
     verify(repository).updateStudent(testStudent);
     verify(repository, times(2)).updateStudentCourseList(any(StudentCourse.class));
+    verify(repository,times(2)).updateApplicationStatus(any(ApplicationStatus.class));
+  }
+
+  @Test
+  void updateStudent_申込状況がnullの場合は更新されないこと() {
+    for (StudentCourse course : testCourseList) {
+      course.setApplicationStatus(null);
+    }
+
+    sut.updateStudent(testStudentDetail);
+
+    verify(repository).updateStudent(testStudent);
+    verify(repository, times(2)).updateStudentCourseList(any(StudentCourse.class));
+    verify(repository, never()).updateApplicationStatus(any());
   }
 }
