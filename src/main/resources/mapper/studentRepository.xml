@@ -21,20 +21,37 @@
   </select>
 
   <!-- 受講生IDで受講生コース検索 -->
-  <select id="searchStudentCourseListByStudentId" resultType="standard.StudentManagement.data.StudentCourse">
+  <select id="searchStudentCourseListByStudentId"
+    resultType="standard.StudentManagement.data.StudentCourse">
     SELECT * FROM students_courses WHERE student_id = #{studentId}
+  </select>
+
+  <!-- 受講生コースIDから申込状況を取得 -->
+  <select id="searchApplicationStatusByStudentCourseId"
+    resultType="standard.StudentManagement.data.ApplicationStatus" parameterType="int">
+    SELECT id, student_course_id AS studentCourseId, status
+    FROM application_statuses
+    WHERE student_course_id = #{studentCourseId}
   </select>
 
   <!-- 受講生の登録 -->
   <insert id="registerStudent">
     INSERT INTO students (id, name, kana_name, nickname, email, area, age, sex, remark, is_deleted)
-    VALUES (#{id}, #{name}, #{kanaName}, #{nickname}, #{email}, #{area}, #{age}, #{sex}, #{remark}, false)
+    VALUES (#{id}, #{name}, #{kanaName}, #{nickname}, #{email}, #{area}, #{age}, #{sex}, #{remark},
+    false)
   </insert>
 
   <!-- 受講生コースの登録 -->
   <insert id="registerStudentCourseList" useGeneratedKeys="true" keyProperty="id">
     INSERT INTO students_courses (student_id, course_name, start_at, end_at)
     VALUES (#{studentId}, #{courseName}, #{startAt}, #{endAt})
+  </insert>
+
+  <!-- 申込状況の登録 -->
+  <insert id="registerApplicationStatus"
+    parameterType="standard.StudentManagement.data.ApplicationStatus" useGeneratedKeys="false">
+    INSERT INTO application_statuses (id, student_course_id, status)
+    VALUES (#{id}, #{studentCourseId}, #{status})
   </insert>
 
   <!-- 受講生情報の更新 -->
@@ -50,6 +67,14 @@
   <update id="updateStudentCourseList">
     UPDATE students_courses
     SET course_name = #{courseName}
+    WHERE id = #{id}
+  </update>
+
+  <!-- 申込状況の更新 -->
+  <update id="updateApplicationStatus"
+    parameterType="standard.StudentManagement.data.ApplicationStatus">
+    UPDATE application_statuses
+    SET status = #{status}
     WHERE id = #{id}
   </update>
 

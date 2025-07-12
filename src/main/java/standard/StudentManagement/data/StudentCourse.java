@@ -26,4 +26,6 @@ public class StudentCourse {
   @NotNull(message = "終了日は必須です。")
   private LocalDateTime endAt;
 
+  private ApplicationStatus applicationStatus;
+
 }
