@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import standard.StudentManagement.data.ApplicationStatus;
+import standard.StudentManagement.data.StatusType;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
 
@@ -69,7 +70,7 @@ class StudentRepositoryTest {
   void searchApplicationStatusByStudentCourseId_受講生コースIDに紐づく申込状況を取得できること() {
     ApplicationStatus actual = sut.searchApplicationStatusByStudentCourseId(1);
     assertThat(actual).isNotNull();
-    assertThat(actual.getStatus()).isEqualTo("仮申込");
+    assertThat(actual.getStatusType()).isEqualTo(StatusType.仮申込);
   }
 
   @Test
@@ -150,13 +151,13 @@ class StudentRepositoryTest {
     ApplicationStatus status = new ApplicationStatus();
     status.setId(UUID.randomUUID().toString());
     status.setStudentCourseId(course.getId());
-    status.setStatus("仮申込");
+    status.setStatusType(StatusType.仮申込);
 
     sut.registerApplicationStatus(status);
 
     ApplicationStatus actual = sut.searchApplicationStatusByStudentCourseId(course.getId());
     assertThat(actual).isNotNull();
-    assertThat(actual.getStatus()).isEqualTo("仮申込");
+    assertThat(actual.getStatusType()).isEqualTo(StatusType.仮申込);
   }
 
   @Test
@@ -164,7 +165,7 @@ class StudentRepositoryTest {
     ApplicationStatus status = new ApplicationStatus();
     status.setId(UUID.randomUUID().toString());
     status.setStudentCourseId(999);
-    status.setStatus("仮申込");
+    status.setStatusType(StatusType.仮申込);
 
     assertThatThrownBy(() -> sut.registerApplicationStatus(status))
         .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
@@ -253,11 +254,11 @@ class StudentRepositoryTest {
   void updateApplicationStatus_申込状況が更新されること() {
     ApplicationStatus status = sut.searchApplicationStatusByStudentCourseId(1);
 
-    status.setStatus("受講中");
+    status.setStatusType(StatusType.受講中);
     sut.updateApplicationStatus(status);
 
     ApplicationStatus result = sut.searchApplicationStatusByStudentCourseId(1);
-    assertThat(result.getStatus()).isEqualTo("受講中");
+    assertThat(result.getStatusType()).isEqualTo(StatusType.受講中);
   }
 
   @Test
@@ -265,7 +266,7 @@ class StudentRepositoryTest {
     ApplicationStatus status = new ApplicationStatus();
     status.setId(UUID.randomUUID().toString());
     status.setStudentCourseId(9999);
-    status.setStatus("仮申込");
+    status.setStatusType(StatusType.仮申込);
 
     sut.updateApplicationStatus(status);
 

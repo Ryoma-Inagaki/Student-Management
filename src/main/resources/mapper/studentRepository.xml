@@ -29,7 +29,7 @@
   <!-- 受講生コースIDから申込状況を取得 -->
   <select id="searchApplicationStatusByStudentCourseId"
     resultType="standard.StudentManagement.data.ApplicationStatus" parameterType="int">
-    SELECT id, student_course_id AS studentCourseId, status
+    SELECT id, student_course_id AS studentCourseId, status, status_id
     FROM application_statuses
     WHERE student_course_id = #{studentCourseId}
   </select>
@@ -50,8 +50,8 @@
   <!-- 申込状況の登録 -->
   <insert id="registerApplicationStatus"
     parameterType="standard.StudentManagement.data.ApplicationStatus" useGeneratedKeys="false">
-    INSERT INTO application_statuses (id, student_course_id, status)
-    VALUES (#{id}, #{studentCourseId}, #{status})
+    INSERT INTO application_statuses (id, student_course_id, status, status_id)
+    VALUES (#{id}, #{studentCourseId}, #{status}, #{statusId})
   </insert>
 
   <!-- 受講生情報の更新 -->
@@ -74,7 +74,7 @@
   <update id="updateApplicationStatus"
     parameterType="standard.StudentManagement.data.ApplicationStatus">
     UPDATE application_statuses
-    SET status = #{status}
+    SET status = #{status}, status_id = #{statusId}
     WHERE id = #{id}
   </update>
 
