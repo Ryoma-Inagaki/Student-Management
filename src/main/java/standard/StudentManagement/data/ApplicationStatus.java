@@ -1,5 +1,6 @@
 package standard.StudentManagement.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -50,7 +51,36 @@ public class ApplicationStatus {
    *
    * @return StatusType または {@code null}
    */
-  public StatusType getStatusTypeById(){
+  @JsonIgnore
+  public StatusType getStatusTypeById() {
     return StatusType.fromId(this.statusId);
+  }
+
+  /**
+   * 文字列のステータスを設定し、それに対応する {@code statusId} も自動で設定します。
+   * 不正な値の場合、{@code statusId} は {@code 0} に設定されます
+   *
+   * @param status 　ステータスの文字列（例: "仮申込"）
+   */
+  public void setStatus(String status) {
+    this.status = status;
+    try {
+      this.statusId = StatusType.toId(status);
+    } catch (IllegalArgumentException e) {
+      this.statusId = 0;
+    }
+  }
+
+  /**
+   * ステータスIDを設定し、それに対応する {@code status} の文字列も自動で設定します。
+   *
+   * @param statusId ステータスID（例: 1）
+   */
+  public void setStatusId(int statusId) {
+    this.statusId = statusId;
+    StatusType type = StatusType.fromId(statusId);
+    if (type != null) {
+      this.status = type.name();
+    }
   }
 }
