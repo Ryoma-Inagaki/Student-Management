@@ -55,4 +55,38 @@ class ApplicationStatusTest {
 
     assertThat(type).isNull();
   }
+
+  @Test
+  void setStatus_文字列からstatusIdが正しく設定されること() {
+    ApplicationStatus applicationStatus = new ApplicationStatus();
+    applicationStatus.setStatus("仮申込");
+
+    assertThat(applicationStatus.getStatusId()).isEqualTo(1);
+  }
+
+  @Test
+  void setStatusId_IDからstatusが正しく設定されること() {
+    ApplicationStatus applicationStatus = new ApplicationStatus();
+    applicationStatus.setStatusId(1);
+
+    assertThat(applicationStatus.getStatus()).isEqualTo("仮申込");
+  }
+
+  @Test
+  void setStatus_不正な文字列を渡すとstatusIdが0になること() {
+    ApplicationStatus applicationStatus = new ApplicationStatus();
+    applicationStatus.setStatus("不正な値");
+
+    assertThat(applicationStatus.getStatus()).isEqualTo("不正な値");
+    assertThat(applicationStatus.getStatusId()).isEqualTo(0);
+  }
+
+  @Test
+  void setStatusId_存在しないIDを渡すとstatusがnullになること() {
+    ApplicationStatus applicationStatus = new ApplicationStatus();
+    applicationStatus.setStatusId(999);
+
+    assertThat(applicationStatus.getStatus()).isNull();
+    assertThat(applicationStatus.getStatusId()).isEqualTo(999);
+  }
 }
