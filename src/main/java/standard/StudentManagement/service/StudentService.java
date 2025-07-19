@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import standard.StudentManagement.controller.converter.StudentConverter;
+import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
 import standard.StudentManagement.domain.StudentDetail;
@@ -25,18 +26,17 @@ public class StudentService {
 
   @Autowired
   public StudentService(StudentRepository repository, StudentConverter converter) {
-    this(repository,converter,Clock.systemDefaultZone());
+    this(repository, converter, Clock.systemDefaultZone());
   }
 
   /**
-   * テスト用途で使用するコンストラクタです。
-   * Clock を任意に注入可能にすることで、日時に依存するロジックの検証を容易にします。
+   * テスト用途で使用するコンストラクタです。 Clock を任意に注入可能にすることで、日時に依存するロジックの検証を容易にします。
    *
    * @param repository 受講生リポジトリ
-   * @param converter 受講生コンバータ
-   * @param clock テスト用の Clock インスタンス
+   * @param converter  受講生コンバータ
+   * @param clock      テスト用の Clock インスタンス
    */
-  StudentService(StudentRepository repository, StudentConverter converter, Clock clock){
+  StudentService(StudentRepository repository, StudentConverter converter, Clock clock) {
     this.repository = repository;
     this.converter = converter;
     this.clock = clock;
@@ -54,15 +54,22 @@ public class StudentService {
   }
 
   /**
-   * 受講生検索です。 IDに紐づく受講生情報を取得した後、その受講生に紐づく受講生コース情報を取得して設定します。
+   * 受講生検索です。 指定されたIDに紐づく受講生情報を取得し、その受講生に紐づく受講生コース情報と 各コースに紐づく申込状況を取得して設定します。
    *
    * @param id 　受講生ID
-   * @return 受講生
+   * @return 受講生詳細情報(コース情報および申込状況を含む)
    */
   public StudentDetail getStudentProfile(String id) {
     Student student = repository.searchStudentById(id);
     List<StudentCourse> studentCourses = repository.searchStudentCourseListByStudentId(
         student.getId());
+
+    studentCourses.forEach(course -> {
+      ApplicationStatus status = repository.searchApplicationStatusByStudentCourseId(
+          course.getId());
+      course.setApplicationStatus(status);
+    });
+
     return new StudentDetail(student, studentCourses);
   }
 
@@ -79,17 +86,18 @@ public class StudentService {
     assignStudentId(student);
     repository.registerStudent(student);
 
-    registerCourseWithStudentId(studentDetail);
+    registerCourseAndStatusWithStudentId(studentDetail);
 
     return studentDetail;
   }
 
   /**
-   * 受講生コース情報に受講生IDを設定し、開始日と終了日を登録します。
+   * 受講生コース情報に受講生IDを設定し、開始日と終了日を登録します。 また、各コースに紐づく申込状況が存在する場合は、それも同時に登録します。
    *
    * @param studentDetail 受講生詳細情報
    */
-  void registerCourseWithStudentId(StudentDetail studentDetail) {
+
+  void registerCourseAndStatusWithStudentId(StudentDetail studentDetail) {
     String studentId = studentDetail.getStudent().getId();
     LocalDateTime now = LocalDateTime.now(clock);
 
@@ -98,6 +106,23 @@ public class StudentService {
       studentCourse.setStartAt(now);
       studentCourse.setEndAt(now.plusMonths(6));
       repository.registerStudentCourseList(studentCourse);
+
+      registerApplicationStatusForCourse(studentCourse);
+    }
+  }
+
+  /**
+   * 指定された受講生コースに紐づく申込状況を登録します。 申込状況がnullの場合は何もせずスキップされます。
+   *
+   * @param studentCourse 申込状況を持つ受講生コース
+   */
+  void registerApplicationStatusForCourse(StudentCourse studentCourse) {
+    ApplicationStatus status = studentCourse.getApplicationStatus();
+
+    if (status != null) {
+      status.setId(UUID.randomUUID().toString());
+      status.setStudentCourseId(studentCourse.getId());
+      repository.registerApplicationStatus(status);
     }
   }
 
@@ -111,15 +136,37 @@ public class StudentService {
   }
 
   /**
-   * 受講生情報、関連する受講生コース情報、またはその両方を更新します。
+   * 受講生情報を更新します。関連する受講生コース情報および申込状況も同時に更新します。
    *
    * @param studentDetail 更新対象の受講生詳細情報
    */
   @Transactional
   public void updateStudent(StudentDetail studentDetail) {
     repository.updateStudent(studentDetail.getStudent());
+    updateCourseAndStatus(studentDetail);
+  }
+
+  /**
+   * 受講生詳細情報に含まれる受講生コース情報を更新し、 それに紐づく申込状況も存在すれば更新します。
+   *
+   * @param studentDetail　更新対象の受講生詳細情報(複数の受講生コースと申込状況を含む)
+   */
+  void updateCourseAndStatus(StudentDetail studentDetail) {
     for (StudentCourse studentCourse : studentDetail.getStudentCourseList()) {
       repository.updateStudentCourseList(studentCourse);
+      updateApplicationStatusIfPresent(studentCourse);
+    }
+  }
+
+  /**
+   * 受講生コースに申込状況が設定されていれば、それを更新します。 申込状況がnullの場合はスキップされます。
+   *
+   * @param studentCourse 　更新対象の受講生コース(申込状況を含む可能性あり)
+   */
+  void updateApplicationStatusIfPresent(StudentCourse studentCourse) {
+    ApplicationStatus status = studentCourse.getApplicationStatus();
+    if (status != null) {
+      repository.updateApplicationStatus(status);
     }
   }
 }

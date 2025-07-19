@@ -21,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
 import standard.StudentManagement.domain.StudentDetail;
@@ -102,6 +103,10 @@ class StudentControllerTest {
   }
 
   public StudentDetail getTestStudentDetail() {
+    ApplicationStatus status = new ApplicationStatus();
+    // @Pattern の制約に合致する必要あるため"仮申込"
+    status.setStatus("仮申込");
+
     Student testStudent = new Student();
     testStudent.setId("test123");
     testStudent.setName("山田テスト");
@@ -118,6 +123,7 @@ class StudentControllerTest {
     course1.setCourseName("Java入門");
     course1.setStartAt(LocalDateTime.of(2025, 6, 1, 9, 0));
     course1.setEndAt(LocalDateTime.of(2025, 6, 30, 18, 0));
+    course1.setApplicationStatus(status);
 
     StudentCourse course2 = new StudentCourse();
     course2.setId(2);
@@ -125,6 +131,7 @@ class StudentControllerTest {
     course2.setCourseName("Spring基礎");
     course2.setStartAt(LocalDateTime.of(2025, 7, 1, 9, 0));
     course2.setEndAt(LocalDateTime.of(2025, 7, 31, 18, 0));
+    course2.setApplicationStatus(status);
     return new StudentDetail(testStudent, List.of(course1, course2));
   }
 

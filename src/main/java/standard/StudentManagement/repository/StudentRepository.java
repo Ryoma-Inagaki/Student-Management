@@ -2,6 +2,7 @@ package standard.StudentManagement.repository;
 
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
+import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
 
@@ -42,6 +43,14 @@ public interface StudentRepository {
   List<StudentCourse> searchStudentCourseListByStudentId(String studentId);
 
   /**
+   * 受講生コースIDに紐づく申込状況を取得します。
+   *
+   * @param studentCourseId 受講生コースID
+   * @return 申込状況
+   */
+  ApplicationStatus searchApplicationStatusByStudentCourseId(int studentCourseId);
+
+  /**
    * 受講生情報を登録します。
    *
    * @param student 登録する受講生情報
@@ -54,6 +63,13 @@ public interface StudentRepository {
    * @param studentCourse 登録する受講生コース情報
    */
   void registerStudentCourseList(StudentCourse studentCourse);
+
+  /**
+   * 申込状況を登録します。
+   *
+   * @param applicationStatus 　登録する申込状況
+   */
+  void registerApplicationStatus(ApplicationStatus applicationStatus);
 
   /**
    * 受講生情報を更新します。 指定されたIDに一致する受講生レコードの情報を、引数の内容で上書きします。
@@ -69,4 +85,10 @@ public interface StudentRepository {
    */
   void updateStudentCourseList(StudentCourse studentCourse);
 
+  /**
+   * 申込状況を更新します。
+   *
+   * @param applicationStatus 　更新する申込状況
+   */
+  void updateApplicationStatus(ApplicationStatus applicationStatus);
 }

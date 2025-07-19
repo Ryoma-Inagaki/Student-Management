@@ -9,6 +9,10 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
+import standard.StudentManagement.data.ApplicationStatus;
+import standard.StudentManagement.data.StatusType;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
 
@@ -65,6 +69,19 @@ class StudentRepositoryTest {
   }
 
   @Test
+  void searchApplicationStatusByStudentCourseId_受講生コースIDに紐づく申込状況を取得できること() {
+    ApplicationStatus actual = sut.searchApplicationStatusByStudentCourseId(1);
+    assertThat(actual).isNotNull();
+    assertThat(actual.getStatusType()).isEqualTo(StatusType.仮申込);
+  }
+
+  @Test
+  void searchApplicationStatusByStudentCourseId_存在しないIDはnullを返すこと() {
+    ApplicationStatus actual = sut.searchApplicationStatusByStudentCourseId(999);
+    assertThat(actual).isNull();
+  }
+
+  @Test
   void registerStudent_受講生情報の登録が行えること() {
     String id = UUID.randomUUID().toString();
     Student student = new Student();
@@ -92,7 +109,7 @@ class StudentRepositoryTest {
     student.setEmail("test@example.com");
 
     assertThatThrownBy(() -> sut.registerStudent(student))
-        .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+        .isInstanceOf(DataIntegrityViolationException.class);
   }
 
   @Test
@@ -105,7 +122,7 @@ class StudentRepositoryTest {
     student.setDeleted(false);
 
     assertThatThrownBy(() -> sut.registerStudent(student))
-        .isInstanceOf(org.springframework.dao.DuplicateKeyException.class);
+        .isInstanceOf(DuplicateKeyException.class);
   }
 
   @Test
@@ -121,6 +138,39 @@ class StudentRepositoryTest {
     List<StudentCourse> actual = sut.searchStudentCourseListByStudentId(
         "11111111-1111-1111-1111-111111111111");
     assertThat(actual).hasSize(3);
+  }
+
+  @Test
+  void registerApplicationStatus_申込状況の登録が行えること() {
+    StudentCourse course = new StudentCourse();
+    course.setStudentId("11111111-1111-1111-1111-111111111111");
+    course.setCourseName("JUnit実践");
+    course.setStartAt(Timestamp.valueOf("2025-07-01 09:00:00").toLocalDateTime());
+    course.setEndAt(Timestamp.valueOf("2025-07-31 18:00:00").toLocalDateTime());
+
+    sut.registerStudentCourseList(course);
+
+    ApplicationStatus status = new ApplicationStatus();
+    status.setId(UUID.randomUUID().toString());
+    status.setStudentCourseId(course.getId());
+    status.setStatusType(StatusType.仮申込);
+
+    sut.registerApplicationStatus(status);
+
+    ApplicationStatus actual = sut.searchApplicationStatusByStudentCourseId(course.getId());
+    assertThat(actual).isNotNull();
+    assertThat(actual.getStatusType()).isEqualTo(StatusType.仮申込);
+  }
+
+  @Test
+  void registerApplicationStatus_存在しない受講生コースIdを指定した場合例外が出ること() {
+    ApplicationStatus status = new ApplicationStatus();
+    status.setId(UUID.randomUUID().toString());
+    status.setStudentCourseId(999);
+    status.setStatusType(StatusType.仮申込);
+
+    assertThatThrownBy(() -> sut.registerApplicationStatus(status))
+        .isInstanceOf(DataIntegrityViolationException.class);
   }
 
   @Test
@@ -181,7 +231,7 @@ class StudentRepositoryTest {
     course.setEndAt(Timestamp.valueOf("2025-07-31 18:00:00").toLocalDateTime());
 
     assertThatThrownBy(() -> sut.registerStudentCourseList(course))
-        .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+        .isInstanceOf(DataIntegrityViolationException.class);
   }
 
   @Test
@@ -200,5 +250,29 @@ class StudentRepositoryTest {
     boolean updated = courseList.stream()
         .anyMatch(c -> c.getCourseName().equals("存在しないIDで更新"));
     assertThat(updated).isFalse();
+  }
+
+  @Test
+  void updateApplicationStatus_申込状況が更新されること() {
+    ApplicationStatus status = sut.searchApplicationStatusByStudentCourseId(1);
+
+    status.setStatusType(StatusType.受講中);
+    sut.updateApplicationStatus(status);
+
+    ApplicationStatus result = sut.searchApplicationStatusByStudentCourseId(1);
+    assertThat(result.getStatusType()).isEqualTo(StatusType.受講中);
+  }
+
+  @Test
+  void updateApplicationStatus_存在しない受講生コースIDを指定しても影響がないこと() {
+    ApplicationStatus status = new ApplicationStatus();
+    status.setId(UUID.randomUUID().toString());
+    status.setStudentCourseId(9999);
+    status.setStatusType(StatusType.仮申込);
+
+    sut.updateApplicationStatus(status);
+
+    ApplicationStatus result = sut.searchApplicationStatusByStudentCourseId(9999);
+    assertThat(result).isNull();
   }
 }
