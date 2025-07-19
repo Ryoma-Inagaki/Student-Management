@@ -9,6 +9,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.StatusType;
 import standard.StudentManagement.data.Student;
@@ -107,7 +109,7 @@ class StudentRepositoryTest {
     student.setEmail("test@example.com");
 
     assertThatThrownBy(() -> sut.registerStudent(student))
-        .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+        .isInstanceOf(DataIntegrityViolationException.class);
   }
 
   @Test
@@ -120,7 +122,7 @@ class StudentRepositoryTest {
     student.setDeleted(false);
 
     assertThatThrownBy(() -> sut.registerStudent(student))
-        .isInstanceOf(org.springframework.dao.DuplicateKeyException.class);
+        .isInstanceOf(DuplicateKeyException.class);
   }
 
   @Test
@@ -168,7 +170,7 @@ class StudentRepositoryTest {
     status.setStatusType(StatusType.仮申込);
 
     assertThatThrownBy(() -> sut.registerApplicationStatus(status))
-        .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+        .isInstanceOf(DataIntegrityViolationException.class);
   }
 
   @Test
@@ -229,7 +231,7 @@ class StudentRepositoryTest {
     course.setEndAt(Timestamp.valueOf("2025-07-31 18:00:00").toLocalDateTime());
 
     assertThatThrownBy(() -> sut.registerStudentCourseList(course))
-        .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+        .isInstanceOf(DataIntegrityViolationException.class);
   }
 
   @Test
