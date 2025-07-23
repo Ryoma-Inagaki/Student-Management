@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,53 @@ class StudentRepositoryTest {
     List<StudentCourse> actual = sut.searchStudentCourseList();
     assertThat(actual).hasSize(5);
   }
+
+  @Test
+  void searchStudentCourseList_申込状況がマッピングされていること() {
+    List<StudentCourse> courseList = sut.searchStudentCourseList();
+
+    StudentCourse course = courseList.stream()
+        .filter(c -> c.getApplicationStatus() != null)
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("申込状況がnullでマッピングされていません"));
+
+    ApplicationStatus status = course.getApplicationStatus();
+    assertThat(status).isNotNull();
+    assertThat(status.getStatusId()).isEqualTo(1);
+    assertThat(status.getStatus()).isEqualTo("仮申込");
+  }
+
+  @Test
+  void searchStudentCourseList_申込状況が存在しない場合はnullになること() {
+    StudentCourse course = new StudentCourse();
+    course.setStudentId("11111111-1111-1111-1111-111111111111");
+    course.setCourseName("テストコース");
+    course.setStartAt(LocalDateTime.now());
+    course.setEndAt(LocalDateTime.now().plusMonths(1));
+
+    sut.registerStudentCourseList(course);
+
+    List<StudentCourse> courseList = sut.searchStudentCourseList();
+    StudentCourse target = courseList.stream()
+        .filter(c -> c.getCourseName().equals("テストコース"))
+        .findFirst()
+        .orElseThrow();
+
+    assertThat(target.getApplicationStatus()).isNull();
+  }
+
+  @Test
+  void registerApplicationStatus_存在しないstudentCourseIdを指定すると例外が出ること() {
+    ApplicationStatus status = new ApplicationStatus();
+    status.setId(UUID.randomUUID().toString());
+    status.setStudentCourseId(999999);
+    status.setStatus("仮申込");
+    status.setStatusId(1);
+
+    assertThatThrownBy(() -> sut.registerApplicationStatus(status))
+        .isInstanceOf(DataIntegrityViolationException.class);
+  }
+
 
   @Test
   void searchStudentCourseListByStudentId_受講生IDに紐づく受講生コース情報の検索が行えること() {
