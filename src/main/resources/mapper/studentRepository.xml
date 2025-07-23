@@ -15,9 +15,34 @@
     students WHERE id = #{id}
   </select>
 
-  <!-- 受講生コース情報の全件検索 -->
-  <select id="searchStudentCourseList" resultType="standard.StudentManagement.data.StudentCourse">
-    SELECT * FROM students_courses
+  <!-- 申込状況付きの受講生コース情報の全件検索 -->
+  <resultMap id="StudentCourseWithStatusMap" type="standard.StudentManagement.data.StudentCourse">
+    <id property="id" column="id"/>
+    <result property="studentId" column="student_id"/>
+    <result property="courseName" column="course_name"/>
+    <result property="startAt" column="start_at"/>
+    <result property="endAt" column="end_at"/>
+    <association property="applicationStatus" javaType="standard.StudentManagement.data.ApplicationStatus">
+      <id property="id" column="status_id"/>
+      <result property="studentCourseId" column="student_course_id"/>
+      <result property="status" column="status"/>
+      <result property="statusId" column="status_type_id"/>
+    </association>
+  </resultMap>
+
+  <select id="searchStudentCourseList" resultMap="StudentCourseWithStatusMap">
+    SELECT
+    sc.id,
+    sc.student_id,
+    sc.course_name,
+    sc.start_at,
+    sc.end_at,
+    a.id AS status_id,
+    a.student_course_id,
+    a.status,
+    a.status_id AS status_type_id
+    FROM students_courses sc
+    LEFT JOIN application_statuses a ON sc.id = a.student_course_id
   </select>
 
   <!-- 受講生IDで受講生コース検索 -->

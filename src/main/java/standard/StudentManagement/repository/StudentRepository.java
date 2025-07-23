@@ -28,9 +28,10 @@ public interface StudentRepository {
   Student searchStudentById(String id);
 
   /**
-   * 受講生のコース情報の全件検索を行います。
+   * 申込状況を含む、受講生のコース情報の全件検索を行います。
+   * 各コースには、紐づく申込状況（application_statuses）が含まれる場合があります。
    *
-   * @return 受講生のコース情報(全件)
+   * @return 受講生コース情報の一覧（申込状況を含む）
    */
   List<StudentCourse> searchStudentCourseList();
 
