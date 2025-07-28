@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import standard.StudentManagement.data.Student;
 import standard.StudentManagement.domain.StudentDetail;
+import standard.StudentManagement.domain.StudentSearchCondition;
 import standard.StudentManagement.exception.ErrorResponse;
 import standard.StudentManagement.exception.TestException;
 import standard.StudentManagement.service.StudentService;
@@ -121,5 +123,8 @@ public class StudentController {
     throw new TestException("現在このAPIは利用できません。URLは｢studentList｣を利用してください。");
   }
 
-
+  @PostMapping("/searchStudents")
+  public List<Student> searchStudents(@RequestBody StudentSearchCondition condition) {
+    return service.searchStudentByCondition(condition);
+  }
 }

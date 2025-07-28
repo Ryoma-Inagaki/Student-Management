@@ -12,6 +12,7 @@ import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
 import standard.StudentManagement.domain.StudentDetail;
+import standard.StudentManagement.domain.StudentSearchCondition;
 import standard.StudentManagement.repository.StudentRepository;
 
 /**
@@ -168,5 +169,9 @@ public class StudentService {
     if (status != null) {
       repository.updateApplicationStatus(status);
     }
+  }
+
+  public List<Student> searchStudentByCondition(StudentSearchCondition condition) {
+    return repository.searchStudentByCondition(condition);
   }
 }

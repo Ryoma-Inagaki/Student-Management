@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
+import standard.StudentManagement.domain.StudentSearchCondition;
 
 /**
  * 受講生テーブルと受講生コース情報テーブルと紐づくリポジトリです。
@@ -92,4 +93,6 @@ public interface StudentRepository {
    * @param applicationStatus 　更新する申込状況
    */
   void updateApplicationStatus(ApplicationStatus applicationStatus);
+
+  List<Student> searchStudentByCondition(StudentSearchCondition condition);
 }

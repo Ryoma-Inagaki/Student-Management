@@ -103,4 +103,58 @@
     WHERE id = #{id}
   </update>
 
+  <resultMap id="StudentResultMap" type="standard.StudentManagement.data.Student">
+    <id property="id" column="id"/>
+    <result property="name" column="name"/>
+    <result property="kanaName" column="kana_name"/>
+    <result property="nickname" column="nickname"/>
+    <result property="email" column="email"/>
+    <result property="area" column="area"/>
+    <result property="age" column="age"/>
+    <result property="sex" column="sex"/>
+    <result property="remark" column="remark"/>
+    <result property="deleted" column="is_deleted"/>
+  </resultMap>
+
+  <select id="searchStudentByCondition"
+    resultMap="StudentResultMap"
+    parameterType="standard.StudentManagement.domain.StudentSearchCondition">
+
+    SELECT DISTINCT s.id, s.name, s.kana_name, s.nickname, s.email, s.area, s.age, s.sex, s.remark, s.is_deleted
+    FROM students s
+    LEFT JOIN students_courses sc ON s.id = sc.student_id
+    LEFT JOIN application_statuses a ON sc.id = a.student_course_id
+
+    <where>
+      <if test="name != null and name != ''">
+        AND s.name LIKE CONCAT('%', #{name}, '%')
+      </if>
+      <if test="email != null and email != ''">
+        AND s.email LIKE CONCAT('%', #{email}, '%')
+      </if>
+      <if test="area != null and area != ''">
+        AND s.area = #{area}
+      </if>
+      <if test="deleted != null">
+        AND s.is_deleted = #{deleted}
+      </if>
+      <if test="minAge != null and minAge != ''">
+        AND s.age &gt;= #{minAge}
+      </if>
+      <if test="maxAge != null and maxAge != ''">
+        AND s.age &lt;= #{maxAge}
+      </if>
+      <if test="sex != null and sex != ''">
+        AND s.sex = #{sex}
+      </if>
+      <if test="courseName != null and courseName != ''">
+        AND sc.course_name = #{courseName}
+      </if>
+      <if test="status != null and status != ''">
+        AND a.status = #{status}
+      </if>
+    </where>
+
+  </select>
+
 </mapper>
