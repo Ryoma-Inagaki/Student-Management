@@ -133,7 +133,7 @@
         AND s.email LIKE CONCAT('%', #{email}, '%')
       </if>
       <if test="area != null and area != ''">
-        AND s.area = #{area}
+        AND s.area LIKE CONCAT(#{area}, '%')
       </if>
       <if test="deleted != null">
         AND s.is_deleted = #{deleted}
