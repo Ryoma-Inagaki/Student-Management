@@ -2,6 +2,7 @@ package standard.StudentManagement.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -233,5 +234,18 @@ class StudentServiceTest {
     assertEquals(2, result.size());
     assertEquals("山本太郎", result.get(0).getName());
     assertEquals("鈴木花子", result.get(1).getName());
+  }
+
+  @Test
+  void searchStudentByCondition_最小年齢が最大年齢より大きいとき_IllegalArgumentExceptionを投げること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setMinAge(30);
+    condition.setMaxAge(10);
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+      sut.searchStudentByCondition(condition);
+    });
+
+    assertEquals("最小年齢は最大年齢以下にしてください", exception.getMessage());
   }
 }

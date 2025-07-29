@@ -172,6 +172,10 @@ public class StudentService {
   }
 
   public List<Student> searchStudentByCondition(StudentSearchCondition condition) {
+    if (condition.getMinAge() > condition.getMaxAge()) {
+      throw new IllegalArgumentException("最小年齢は最大年齢以下にしてください");
+    }
+
     return repository.searchStudentByCondition(condition);
   }
 }
