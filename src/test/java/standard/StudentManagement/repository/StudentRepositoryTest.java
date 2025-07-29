@@ -16,6 +16,7 @@ import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.StatusType;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
+import standard.StudentManagement.domain.StudentSearchCondition;
 
 @MybatisTest
 class StudentRepositoryTest {
@@ -322,5 +323,100 @@ class StudentRepositoryTest {
 
     ApplicationStatus result = sut.searchApplicationStatusByStudentCourseId(9999);
     assertThat(result).isNull();
+  }
+
+  @Test
+  void searchStudentByCondition_条件に名前だけを指定した場合_名前に一致する受講生だけが返ること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("山田"); //名前はLIKE CONCAT('%', #{name}, '%')で部分一致検索される
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isNotEmpty();
+    assertThat(result).allMatch(student -> student.getName().contains("山田"));
+  }
+
+  @Test
+  void searchStudentByCondition_複数の条件を指定した場合_すべての条件に一致する受講生だけが返ること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("佐藤"); //名前はLIKE CONCAT('%', #{name}, '%')で部分一致検索される
+    condition.setArea("大阪"); //エリアはLIKE CONCAT(#{area}, '%')で部分一致検索される
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).hasSize(1);
+    assertThat(result).allMatch(student -> student.getName().contains("佐藤"));
+    assertThat(result).allMatch(student -> student.getArea().contains("大阪"));
+  }
+
+  @Test
+  void searchStudentByCondition_名前に部分一致する複数の受講生が返ること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("田");
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).hasSize(2);
+    assertThat(result).allMatch(student -> student.getName().contains("田"));
+  }
+
+  @Test
+  void searchStudentByCondition_条件に一致する受講生がいない場合_空リストが返ること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("存在しない名前");
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  void searchStudentByCondition_複数条件に一致する受講生が存在しない場合_空のリストが返ること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("佐藤");
+    condition.setArea("名古屋");
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  void searchStudentByCondition_SQLインジェクションを試みても例外が発生しないこと() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("'; DROP TABLE student; --");
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  void searchStudentByCondition_非常に長い文字列を指定してもエラーにならないこと() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("山".repeat(1000));
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isEmpty();
+  }
+  @Test
+  void searchStudentByCondition_記号を使用してもエラーにならないこと() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("％");
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  void searchStudentByCondition_ホワイトスペースを使用してもエラーにならないこと() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("　");
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isEmpty();
   }
 }
