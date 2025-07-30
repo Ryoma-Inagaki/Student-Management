@@ -124,7 +124,10 @@ public class StudentController {
   }
 
   @PostMapping("/searchStudents")
-  public List<Student> searchStudents(@RequestBody @Valid StudentSearchCondition condition) {
-    return service.searchStudentByCondition(condition);
+  public ResponseEntity<List<Student>> searchStudents(
+      @RequestBody @Valid StudentSearchCondition condition) {
+
+    List<Student> students = service.searchStudentByCondition(condition);
+    return ResponseEntity.ok(students);
   }
 }
