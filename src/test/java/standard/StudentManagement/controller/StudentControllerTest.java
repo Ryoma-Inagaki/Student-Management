@@ -25,6 +25,7 @@ import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
 import standard.StudentManagement.domain.StudentDetail;
+import standard.StudentManagement.domain.StudentSearchCondition;
 import standard.StudentManagement.service.StudentService;
 
 @WebMvcTest(StudentController.class)
@@ -100,6 +101,29 @@ class StudentControllerTest {
         .andExpect(content().string("更新処理が成功しました。"));
 
     verify(service, times(1)).updateStudent(any(StudentDetail.class));
+  }
+
+  @Test
+  void searchStudents_条件を指定して検索が実行されリストが返ること() throws Exception {
+    Student testStudent = getTestStudentDetail().getStudent();
+
+    when(service.searchStudentByCondition(any())).thenReturn(
+        List.of(testStudent));
+
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("山田");
+    condition.setCourseName("Java入門");
+
+    String requestJson = objectMapper.writeValueAsString(condition);
+    String responseJson = objectMapper.writeValueAsString(List.of(testStudent));
+
+    mockMvc.perform(post("/searchStudents")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestJson))
+        .andExpect(status().isOk())
+        .andExpect(content().json(responseJson));
+
+    verify(service).searchStudentByCondition(any());
   }
 
   public StudentDetail getTestStudentDetail() {
