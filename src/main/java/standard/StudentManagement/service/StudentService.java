@@ -171,11 +171,18 @@ public class StudentService {
     }
   }
 
+  /**
+   * 指定された検索条件に基づいて受講生を検索します。
+   * 最小年齢が最大年齢を上回っている場合は {@link IllegalArgumentException} をスローします。
+   *
+   * @param condition 検索条件（名前、メールアドレス、地域、性別、年齢範囲、コース名、申込状況、削除フラグ）
+   * @return 条件に一致する受講生のリスト
+   * @throws IllegalArgumentException 最小年齢が最大年齢を上回っている場合
+   */
   public List<Student> searchStudentByCondition(StudentSearchCondition condition) {
     if (condition.getMinAge() > condition.getMaxAge()) {
       throw new IllegalArgumentException("最小年齢は最大年齢以下にしてください");
     }
-
     return repository.searchStudentByCondition(condition);
   }
 }
