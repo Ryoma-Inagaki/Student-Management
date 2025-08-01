@@ -330,10 +330,13 @@ class StudentRepositoryTest {
     StudentSearchCondition condition = new StudentSearchCondition();
     condition.setName("山田"); //名前はLIKE CONCAT('%', #{name}, '%')で部分一致検索される
 
+    Student student = sut.searchStudentById("11111111-1111-1111-1111-111111111111");
+    List<Student> expect = List.of(student);
+
     List<Student> result = sut.searchStudentByCondition(condition);
 
     assertThat(result).isNotEmpty();
-    assertThat(result).allMatch(student -> student.getName().contains("山田"));
+    assertThat(result).isEqualTo(expect);
   }
 
   @Test
@@ -342,11 +345,13 @@ class StudentRepositoryTest {
     condition.setName("佐藤"); //名前はLIKE CONCAT('%', #{name}, '%')で部分一致検索される
     condition.setArea("大阪"); //エリアはLIKE CONCAT(#{area}, '%')で部分一致検索される
 
+    Student student = sut.searchStudentById("22222222-2222-2222-2222-222222222222");
+    List<Student> expect = List.of(student);
+
     List<Student> result = sut.searchStudentByCondition(condition);
 
     assertThat(result).hasSize(1);
-    assertThat(result).allMatch(student -> student.getName().contains("佐藤"));
-    assertThat(result).allMatch(student -> student.getArea().contains("大阪"));
+    assertThat(result).isEqualTo(expect);
   }
 
   @Test
@@ -354,10 +359,14 @@ class StudentRepositoryTest {
     StudentSearchCondition condition = new StudentSearchCondition();
     condition.setName("田");
 
+    Student student1 = sut.searchStudentById("11111111-1111-1111-1111-111111111111");
+    Student student2 = sut.searchStudentById("44444444-4444-4444-4444-444444444444");
+    List<Student> expect = List.of(student1,student2);
+
     List<Student> result = sut.searchStudentByCondition(condition);
 
     assertThat(result).hasSize(2);
-    assertThat(result).allMatch(student -> student.getName().contains("田"));
+    assertThat(result).isEqualTo(expect);
   }
 
   @Test
