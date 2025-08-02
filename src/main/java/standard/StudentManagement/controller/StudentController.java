@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import standard.StudentManagement.data.Student;
 import standard.StudentManagement.domain.StudentDetail;
+import standard.StudentManagement.domain.StudentSearchCondition;
 import standard.StudentManagement.exception.ErrorResponse;
 import standard.StudentManagement.exception.TestException;
 import standard.StudentManagement.service.StudentService;
@@ -121,5 +123,30 @@ public class StudentController {
     throw new TestException("現在このAPIは利用できません。URLは｢studentList｣を利用してください。");
   }
 
+  /**
+   * 受講生の検索条件を指定して検索を行います。
+   *
+   * @param condition 検索条件（名前、メールアドレス、地域、性別、年齢範囲、コース名、申込状況、削除フラグ）
+   * @return 条件に一致した受講生一覧
+   */
+  @Operation(summary = "条件付き受講生検索", description = "指定された検索条件に一致する受講生を取得します。",
+      responses = {
+          @ApiResponse(responseCode = "200", description = "検索結果の受講生一覧",
+              content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = Student.class))),
+          @ApiResponse(responseCode = "400", description = "検索条件が不正です",
+              content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))),
+          @ApiResponse(responseCode = "500", description = "サーバーエラー",
+              content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class)))
+      }
+  )
+  @PostMapping("/searchStudents")
+  public ResponseEntity<List<Student>> searchStudents(
+      @RequestBody @Valid StudentSearchCondition condition) {
 
+    List<Student> students = service.searchStudentByCondition(condition);
+    return ResponseEntity.ok(students);
+  }
 }

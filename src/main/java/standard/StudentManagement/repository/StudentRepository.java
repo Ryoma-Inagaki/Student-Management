@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
+import standard.StudentManagement.domain.StudentSearchCondition;
 
 /**
  * 受講生テーブルと受講生コース情報テーブルと紐づくリポジトリです。
@@ -28,9 +29,10 @@ public interface StudentRepository {
   Student searchStudentById(String id);
 
   /**
-   * 受講生のコース情報の全件検索を行います。
+   * 申込状況を含む、受講生のコース情報の全件検索を行います。
+   * 各コースには、紐づく申込状況（application_statuses）が含まれる場合があります。
    *
-   * @return 受講生のコース情報(全件)
+   * @return 受講生コース情報の一覧（申込状況を含む）
    */
   List<StudentCourse> searchStudentCourseList();
 
@@ -91,4 +93,12 @@ public interface StudentRepository {
    * @param applicationStatus 　更新する申込状況
    */
   void updateApplicationStatus(ApplicationStatus applicationStatus);
+
+  /**
+   * 指定された検索条件に一致する受講生の一覧を取得します。
+   *
+   * @param condition 検索条件(名前、メールアドレス、地域、性別、年齢範囲、コース名、申込状況、削除フラグ)
+   * @return 条件に一致する受講生のリスト
+   */
+  List<Student> searchStudentByCondition(StudentSearchCondition condition);
 }

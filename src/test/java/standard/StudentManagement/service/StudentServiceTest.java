@@ -2,6 +2,7 @@ package standard.StudentManagement.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -23,6 +24,7 @@ import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
 import standard.StudentManagement.domain.StudentDetail;
+import standard.StudentManagement.domain.StudentSearchCondition;
 import standard.StudentManagement.repository.StudentRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -98,7 +100,6 @@ class StudentServiceTest {
 
     List<StudentCourse> mockCourses = List.of(course);
 
-
     when(repository.searchStudentById(studentId)).thenReturn(mockStudent);
     when(repository.searchStudentCourseListByStudentId(studentId)).thenReturn(mockCourses);
     when(repository.searchApplicationStatusByStudentCourseId(1)).thenReturn(status);
@@ -111,7 +112,7 @@ class StudentServiceTest {
 
     assertEquals(studentId, result.getStudent().getId());
     assertEquals("山田テスト", result.getStudent().getName());
-    assertEquals("仮申込",result.getStudentCourseList().get(0).getApplicationStatus().getStatus());
+    assertEquals("仮申込", result.getStudentCourseList().get(0).getApplicationStatus().getStatus());
   }
 
   @Test
@@ -131,7 +132,7 @@ class StudentServiceTest {
 
     sut = new StudentService(repository, converter, fixedClock);
 
-    for(StudentCourse studentCourse : testCourseList){
+    for (StudentCourse studentCourse : testCourseList) {
       ApplicationStatus status = new ApplicationStatus();
       status.setStatus("仮申込");
       studentCourse.setApplicationStatus(status);
@@ -145,7 +146,7 @@ class StudentServiceTest {
       assertEquals(fixedDateTime.plusMonths(6), studentCourse.getEndAt());
     }
     verify(repository, times(2)).registerStudentCourseList(any(StudentCourse.class));
-    verify(repository,times(2)).registerApplicationStatus(any(ApplicationStatus.class));
+    verify(repository, times(2)).registerApplicationStatus(any(ApplicationStatus.class));
   }
 
   @Test
@@ -170,7 +171,7 @@ class StudentServiceTest {
 
   @Test
   void updateStudent_リポジトリの処理が適切によびだせていること() {
-    for (StudentCourse course : testCourseList){
+    for (StudentCourse course : testCourseList) {
       ApplicationStatus status = new ApplicationStatus();
       status.setStatus("仮申込");
       course.setApplicationStatus(status);
@@ -180,7 +181,7 @@ class StudentServiceTest {
 
     verify(repository).updateStudent(testStudent);
     verify(repository, times(2)).updateStudentCourseList(any(StudentCourse.class));
-    verify(repository,times(2)).updateApplicationStatus(any(ApplicationStatus.class));
+    verify(repository, times(2)).updateApplicationStatus(any(ApplicationStatus.class));
   }
 
   @Test
@@ -194,5 +195,57 @@ class StudentServiceTest {
     verify(repository).updateStudent(testStudent);
     verify(repository, times(2)).updateStudentCourseList(any(StudentCourse.class));
     verify(repository, never()).updateApplicationStatus(any());
+  }
+
+  @Test
+  void searchStudentByCondition_リポジトリの処理が適切に呼び出せていること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("山本");
+
+    List<Student> mockResult = new ArrayList<>();
+    Student student = new Student();
+    student.setName("山本テスト");
+    mockResult.add(student);
+
+    when(repository.searchStudentByCondition(condition)).thenReturn(mockResult);
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    verify(repository, times(1)).searchStudentByCondition(condition);
+    assertEquals(1, result.size());
+    assertEquals("山本テスト", result.get(0).getName());
+  }
+
+  @Test
+  void searchStudentByCondition_検索条件がすべて空の場合_全件検索になること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+
+    List<Student> mockResult = new ArrayList<>();
+    Student student1 = new Student(); student1.setName("山本太郎");
+    Student student2 = new Student(); student2.setName("鈴木花子");
+    mockResult.add(student1);
+    mockResult.add(student2);
+
+    when(repository.searchStudentByCondition(condition)).thenReturn(mockResult);
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    verify(repository, times(1)).searchStudentByCondition(condition);
+    assertEquals(2, result.size());
+    assertEquals("山本太郎", result.get(0).getName());
+    assertEquals("鈴木花子", result.get(1).getName());
+  }
+
+  @Test
+  void searchStudentByCondition_最小年齢が最大年齢より大きいとき_IllegalArgumentExceptionを投げること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setMinAge(30);
+    condition.setMaxAge(10);
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+      sut.searchStudentByCondition(condition);
+    });
+
+    assertEquals("最小年齢は最大年齢以下にしてください", exception.getMessage());
   }
 }

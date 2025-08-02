@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
 import standard.StudentManagement.domain.StudentDetail;
@@ -76,4 +77,71 @@ class StudentConverterTest {
     assertThat(testStudentDetails.get(0).getStudentCourseList()).isEmpty();
   }
 
+  @Test
+  void convertStudentDetails_申込状況のstatusIdからstatusが補完される() {
+    Student student = new Student();
+    student.setId("test123");
+
+    StudentCourse course = new StudentCourse();
+    course.setId(100);
+    course.setStudentId("test123");
+    course.setCourseName("AWSコース");
+
+    ApplicationStatus status = new ApplicationStatus();
+    status.setStatusId(1);
+    course.setApplicationStatus(status);
+
+    List<Student> studentList = List.of(student);
+    List<StudentCourse> courseList = List.of(course);
+
+    List<StudentDetail> result = converter.convertStudentDetails(studentList, courseList);
+
+    ApplicationStatus resultStatus = result.get(0).getStudentCourseList().get(0).getApplicationStatus();
+    assertThat(resultStatus.getStatusId()).isEqualTo(1);
+    assertThat(resultStatus.getStatus()).isEqualTo("仮申込");
+  }
+
+  @Test
+  void convertStudentDetails_不正なstatusIdはstatusを補完しない() {
+    Student student = new Student();
+    student.setId("test123");
+
+    StudentCourse course = new StudentCourse();
+    course.setId(200);
+    course.setStudentId("test123");
+    course.setCourseName("AWSコース");
+
+    ApplicationStatus status = new ApplicationStatus();
+    status.setStatusId(999);
+    course.setApplicationStatus(status);
+
+    List<Student> studentList = List.of(student);
+    List<StudentCourse> courseList = List.of(course);
+
+    List<StudentDetail> result = converter.convertStudentDetails(studentList, courseList);
+
+    ApplicationStatus resultStatus = result.get(0).getStudentCourseList().get(0).getApplicationStatus();
+    assertThat(resultStatus.getStatusId()).isEqualTo(999);
+    assertThat(resultStatus.getStatus()).isNull();
+  }
+
+  @Test
+  void convertStudentDetails_申込状況がnullでも例外にならず処理できる() {
+    Student student = new Student();
+    student.setId("test123");
+
+    StudentCourse course = new StudentCourse();
+    course.setId(300);
+    course.setStudentId("test123");
+    course.setCourseName("AWSコース");
+    course.setApplicationStatus(null);
+
+    List<Student> studentList = List.of(student);
+    List<StudentCourse> courseList = List.of(course);
+
+    List<StudentDetail> result = converter.convertStudentDetails(studentList, courseList);
+
+    assertThat(result.get(0).getStudentCourseList().get(0).getCourseName()).isEqualTo("AWSコース");
+    assertThat(result.get(0).getStudentCourseList().get(0).getApplicationStatus()).isNull();
+  }
 }

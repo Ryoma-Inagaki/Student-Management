@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import standard.StudentManagement.data.ApplicationStatus;
 import standard.StudentManagement.data.StatusType;
 import standard.StudentManagement.data.Student;
 import standard.StudentManagement.data.StudentCourse;
+import standard.StudentManagement.domain.StudentSearchCondition;
 
 @MybatisTest
 class StudentRepositoryTest {
@@ -59,6 +61,53 @@ class StudentRepositoryTest {
     List<StudentCourse> actual = sut.searchStudentCourseList();
     assertThat(actual).hasSize(5);
   }
+
+  @Test
+  void searchStudentCourseList_申込状況がマッピングされていること() {
+    List<StudentCourse> courseList = sut.searchStudentCourseList();
+
+    StudentCourse course = courseList.stream()
+        .filter(c -> c.getApplicationStatus() != null)
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("申込状況がnullでマッピングされていません"));
+
+    ApplicationStatus status = course.getApplicationStatus();
+    assertThat(status).isNotNull();
+    assertThat(status.getStatusId()).isEqualTo(1);
+    assertThat(status.getStatus()).isEqualTo("仮申込");
+  }
+
+  @Test
+  void searchStudentCourseList_申込状況が存在しない場合はnullになること() {
+    StudentCourse course = new StudentCourse();
+    course.setStudentId("11111111-1111-1111-1111-111111111111");
+    course.setCourseName("テストコース");
+    course.setStartAt(LocalDateTime.now());
+    course.setEndAt(LocalDateTime.now().plusMonths(1));
+
+    sut.registerStudentCourseList(course);
+
+    List<StudentCourse> courseList = sut.searchStudentCourseList();
+    StudentCourse target = courseList.stream()
+        .filter(c -> c.getCourseName().equals("テストコース"))
+        .findFirst()
+        .orElseThrow();
+
+    assertThat(target.getApplicationStatus()).isNull();
+  }
+
+  @Test
+  void registerApplicationStatus_存在しないstudentCourseIdを指定すると例外が出ること() {
+    ApplicationStatus status = new ApplicationStatus();
+    status.setId(UUID.randomUUID().toString());
+    status.setStudentCourseId(999999);
+    status.setStatus("仮申込");
+    status.setStatusId(1);
+
+    assertThatThrownBy(() -> sut.registerApplicationStatus(status))
+        .isInstanceOf(DataIntegrityViolationException.class);
+  }
+
 
   @Test
   void searchStudentCourseListByStudentId_受講生IDに紐づく受講生コース情報の検索が行えること() {
@@ -274,5 +323,109 @@ class StudentRepositoryTest {
 
     ApplicationStatus result = sut.searchApplicationStatusByStudentCourseId(9999);
     assertThat(result).isNull();
+  }
+
+  @Test
+  void searchStudentByCondition_条件に名前だけを指定した場合_名前に一致する受講生だけが返ること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("山田"); //名前はLIKE CONCAT('%', #{name}, '%')で部分一致検索される
+
+    Student student = sut.searchStudentById("11111111-1111-1111-1111-111111111111");
+    List<Student> expect = List.of(student);
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isNotEmpty();
+    assertThat(result).isEqualTo(expect);
+  }
+
+  @Test
+  void searchStudentByCondition_複数の条件を指定した場合_すべての条件に一致する受講生だけが返ること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("佐藤"); //名前はLIKE CONCAT('%', #{name}, '%')で部分一致検索される
+    condition.setArea("大阪"); //エリアはLIKE CONCAT(#{area}, '%')で部分一致検索される
+
+    Student student = sut.searchStudentById("22222222-2222-2222-2222-222222222222");
+    List<Student> expect = List.of(student);
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).hasSize(1);
+    assertThat(result).isEqualTo(expect);
+  }
+
+  @Test
+  void searchStudentByCondition_名前に部分一致する複数の受講生が返ること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("田");
+
+    Student student1 = sut.searchStudentById("11111111-1111-1111-1111-111111111111");
+    Student student2 = sut.searchStudentById("44444444-4444-4444-4444-444444444444");
+    List<Student> expect = List.of(student1,student2);
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).hasSize(2);
+    assertThat(result).isEqualTo(expect);
+  }
+
+  @Test
+  void searchStudentByCondition_条件に一致する受講生がいない場合_空リストが返ること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("存在しない名前");
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  void searchStudentByCondition_複数条件に一致する受講生が存在しない場合_空のリストが返ること() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("佐藤");
+    condition.setArea("名古屋");
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  void searchStudentByCondition_SQLインジェクションを試みても例外が発生しないこと() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("'; DROP TABLE student; --");
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  void searchStudentByCondition_非常に長い文字列を指定してもエラーにならないこと() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("山".repeat(1000));
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isEmpty();
+  }
+  @Test
+  void searchStudentByCondition_記号を使用してもエラーにならないこと() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("％");
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  void searchStudentByCondition_ホワイトスペースを使用してもエラーにならないこと() {
+    StudentSearchCondition condition = new StudentSearchCondition();
+    condition.setName("　");
+
+    List<Student> result = sut.searchStudentByCondition(condition);
+
+    assertThat(result).isEmpty();
   }
 }
